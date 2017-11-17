@@ -17,6 +17,7 @@ use tlsclient::HttpsConnector;
 use errors;
 use plugin::Plugin;
 use oauth_plugin::OauthPlugin;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Routes {
@@ -28,10 +29,10 @@ pub struct Proxy {
     pub routes: Routes,
     pub client: Client<HttpConnector, Body>,
     pub tls_client: Client<HttpsConnector, Body>,
-    pub plugin: OauthPlugin
+    pub plugin: Arc<Plugin>
 }
 
-impl Service for Proxy {
+impl Service for Proxy{
     type Request = Request;
     type Response = Response;
     type Error = hyper::Error;
