@@ -2,6 +2,9 @@ use plugin::Plugin;
 use hyper::Request;
 use hyper::Response;
 use std::collections::HashMap;
+use hyper::header::Authorization;
+use hyper;
+use std::str::FromStr;
 
 //#[derive(Deserialize, Debug, Clone)]
 //pub struct Config {
@@ -46,8 +49,11 @@ impl Plugin for OauthPlugin {
     fn plugin_name(&self) -> String {
         return String::from("Oauth Plugin");
     }
-    fn on_request(&self, req: Request) -> Option<Request> {
-        return None;
+    fn on_request(&self, req: &mut Request) -> Result<(), ()> {
+        req.headers().get::<Authorization<String>>().map(|value| {
+            println!("you made it {}", value);
+            Ok(())
+        }).unwrap_or(Err(()))
     }
 }
 

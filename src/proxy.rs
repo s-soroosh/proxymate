@@ -70,13 +70,10 @@ impl Service for Proxy{
                     *proxied_request.headers_mut() = req.headers().clone();
 
                     //call plugins here
-                    let o = self.plugin.on_request(proxied_request);
-                    if o.is_none() {
+                    let o = self.plugin.on_request(&mut proxied_request);
+                    if o.is_err() {
                         return futures::future::ok(Response::new().with_status(StatusCode::BadRequest)).boxed();
                     }
-                    proxied_request = o.unwrap();
-
-
 
                     let req = if secure {
                         self.tls_client.request(proxied_request)

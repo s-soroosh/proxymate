@@ -6,11 +6,11 @@ use oauth_plugin::OauthPlugin;
 
 pub trait Plugin {
     fn plugin_name(&self) -> String;
-    fn on_request(&self, req: Request) -> Option<Request> {
-        return Option::from(req);
+    fn on_request(&self, req: &mut Request) -> Result<(),()> {
+        return Ok(());
     }
-    fn on_response(&self, res: Response) -> Option<Response> {
-        return Option::from(res);
+    fn on_response<'a>(&self, res: &mut Response) -> Result<(),()> {
+        return Ok(());
     }
 }
 
@@ -34,20 +34,17 @@ impl Plugin for PluginRegistry {
         return self.plugins.iter().map(|p| p.plugin_name()).fold(String::new(), |a, p| a + p.as_str()).to_string();
     }
 
-    fn on_request(&self, req: Request) -> Option<Request> {
-        let mut last_req = Option::from(req);
+    fn on_request(&self, req: &mut Request) -> Result<(), ()> {
         for p in self.plugins.iter() {
-            let o = p.on_request(last_req.unwrap());
-            if o.is_none() {
-                return None;
-            } else {
-                last_req = o;
+            let o = p.on_request(req);
+            if o.is_err() {
+                return Err(());
             }
         }
-        return last_req;
+        return Ok(());
     }
 
-    fn on_response(&self, res: Response) -> Option<Response> {
+    fn on_response(&self, res: &mut Response) -> Result<(), ()> {
         unimplemented!()
     }
 }
