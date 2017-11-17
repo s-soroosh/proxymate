@@ -7,3 +7,13 @@ listen_addr = "0.0.0.0:8000"
 
 # Proxying to a remote server works too
 "/static" = "https://cdn.site.org"
+
+[oauth]
+tokeninfo_url =  "token url"
+[realms]
+    [realms.EMPLOYEES]
+        uids = ["ssarabadani"]
+    [realms.SERVICES]
+        scopes = ["read.all"]
+        uids = [""]
+

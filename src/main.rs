@@ -167,21 +167,21 @@ fn run() -> errors::Result<()> {
     Ok(())
 }
 
-fn main() {
-    if let Err(e) = run() {
-        eprintln!("error: {}", e);
-
-        for e in e.iter().skip(1) {
-            eprintln!("caused by: {}", e);
-        }
-
-        if let Some(backtrace) = e.backtrace() {
-            eprintln!("backtrace: {:?}", backtrace);
-        }
-
-        ::std::process::exit(1);
-    }
-}
+//fn main() {
+//    if let Err(e) = run() {
+//        eprintln!("error: {}", e);
+//
+//        for e in e.iter().skip(1) {
+//            eprintln!("caused by: {}", e);
+//        }
+//
+//        if let Some(backtrace) = e.backtrace() {
+//            eprintln!("backtrace: {:?}", backtrace);
+//        }
+//
+//        ::std::process::exit(1);
+//    }
+//}
 
 //fn main() {
 //    let mut registry = PluginRegistry::new();
@@ -189,3 +189,16 @@ fn main() {
 //    registry.register_plugin(plugin);
 //    println!("{}", registry.plugin_name());
 //}
+use oauth_plugin::OauthPluginConfig;
+
+fn main() {
+    let mut cwd = env::current_dir().unwrap();
+    cwd.push(CONFIG_FILE_NAME);
+
+    let mut cfg_file = File::open(cwd).unwrap();
+    let mut contents = String::new();
+    cfg_file.read_to_string(&mut contents).unwrap();
+
+    let cfg: OauthPluginConfig = toml::from_str(&contents).unwrap();
+    println!("{:?}", cfg);
+}
