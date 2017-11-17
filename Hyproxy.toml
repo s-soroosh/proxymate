@@ -1,0 +1,9 @@
+[general]
+listen_addr = "0.0.0.0:8000"
+
+[paths]
+# Proxying to your app's server
+"/mono" = "http://localhost:8080"
+
+# Proxying to a remote server works too
+"/static" = "https://cdn.site.org"
