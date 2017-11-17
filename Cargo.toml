@@ -1,0 +1,7 @@
+[package]
+name = "ftf"
+version = "0.1.0"
+authors = ["soroosh sarabadani <soroosh.sarabadani@gmail.com>"]
+
+[dependencies]
+meter_proxy = "0.2.1"
