@@ -20,6 +20,10 @@ mod config;
 mod errors;
 mod proxy;
 mod tlsclient;
+mod plugin;
+mod oauth_plugin;
+
+use oauth_plugin::OauthPlugin;
 
 use std::io;
 use std::io::{Read, Write};
@@ -114,27 +118,38 @@ fn run() -> errors::Result<()> {
         None
     };
 
-    let addr : SocketAddr = config.general.listen_addr.parse()?;
+    let addr: SocketAddr = config.general.listen_addr.parse()?;
     let sock = TcpListener::bind(&addr, &handle)?;
     let client = hyper::Client::new(&handle);
     let tls_connector = TlsConnector::builder()?.build()?;
     let https_connector = tlsclient::HttpsConnector::new(hyper::client::HttpConnector::new(4, &handle), tls_connector);
     let tls_client = hyper::Client::configure().connector(https_connector).build(&handle);
     let http = Http::new();
-    println!("Listening on http{}://{} with 1 thread...", match acceptor { Some(_) => "s", None => "" }, sock.local_addr()?);
+    let plugin = OauthPlugin {};
+    println!("Listening on http{}://{} with 1 thread...", match acceptor {
+        Some(_) => "s",
+        None => ""
+    }, sock.local_addr()?);
     if let Some(acceptor) = acceptor {
         let server = sock.incoming().for_each(|(sock, remote_addr)| {
-            let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone() };
+            let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone(), plugin: plugin.clone() };
             acceptor.accept_async(sock).join(Ok(remote_addr)).and_then(|(sock, remote_addr)| {
                 http.bind_connection(&handle, sock, remote_addr, service);
                 Ok(())
-            }).or_else(|e| { println!("error accepting TLS connection: {}", e); Ok(()) })
+            }).or_else(|e| {
+                println!("error accepting TLS connection: {}", e);
+                Ok(())
+            })
         });
         core.run(server)?;
     } else {
         let server = sock.incoming().for_each(|(sock, remote_addr)| {
-            let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone() };
-            futures::future::ok(remote_addr).and_then(|remote_addr| { http.bind_connection(&handle, sock, remote_addr, service); Ok(()) })
+            let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone(), plugin: plugin.clone() };
+            println!("really??");
+            futures::future::ok(remote_addr).and_then(|remote_addr| {
+                http.bind_connection(&handle, sock, remote_addr, service);
+                Ok(())
+            })
         });
         core.run(server)?;
     };

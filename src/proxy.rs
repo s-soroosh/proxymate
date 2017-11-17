@@ -15,6 +15,8 @@ use regex;
 
 use tlsclient::HttpsConnector;
 use errors;
+use plugin::Plugin;
+use oauth_plugin::OauthPlugin;
 
 #[derive(Clone)]
 pub struct Routes {
@@ -26,6 +28,7 @@ pub struct Proxy {
     pub routes: Routes,
     pub client: Client<HttpConnector, Body>,
     pub tls_client: Client<HttpsConnector, Body>,
+    pub plugin: OauthPlugin
 }
 
 impl Service for Proxy {
@@ -34,11 +37,12 @@ impl Service for Proxy {
     type Error = hyper::Error;
     type Future = Box<Future<Item=Response, Error=Self::Error>>;
 
+
     fn call(&self, req: Request) -> Self::Future {
         let uri = req.uri();
-//        println!("uri is {}", uri);
+        //        println!("uri is {}", uri);
         let matches = self.routes.regexes.matches(uri.path());
-//        println!("routes are {:?}", self.routes.regexes);
+        //        println!("routes are {:?}", self.routes.regexes);
 
         let fut = {
             if !matches.matched_any() {
@@ -63,6 +67,16 @@ impl Service for Proxy {
                     let secure = url.scheme().unwrap_or("") == "https";
                     let mut proxied_request = hyper::client::Request::new(req.method().clone(), url);
                     *proxied_request.headers_mut() = req.headers().clone();
+
+                    //call plugins here
+                    let o = self.plugin.on_request(proxied_request);
+                    if o.is_none() {
+                        return futures::future::ok(Response::new().with_status(StatusCode::BadRequest)).boxed();
+                    }
+                    proxied_request = o.unwrap();
+
+
+
                     let req = if secure {
                         self.tls_client.request(proxied_request)
                     } else {
