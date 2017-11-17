@@ -24,7 +24,7 @@ mod tlsclient;
 mod plugin;
 mod oauth_plugin;
 
-use plugin::Plugin;
+use plugin::{Plugin, PluginRegistry};
 use oauth_plugin::OauthPlugin;
 
 use std::io;
@@ -45,6 +45,7 @@ use tokio_tls::TlsAcceptorExt;
 
 use native_tls::{Pkcs12, TlsAcceptor, TlsConnector};
 use std::sync::Arc;
+use std::rc::Rc;
 
 static CONFIG_FILE_NAME: &'static str = "Hyproxy.toml";
 
@@ -128,14 +129,19 @@ fn run() -> errors::Result<()> {
     let https_connector = tlsclient::HttpsConnector::new(hyper::client::HttpConnector::new(4, &handle), tls_connector);
     let tls_client = hyper::Client::configure().connector(https_connector).build(&handle);
     let http = Http::new();
-    let plugin = Arc::new(OauthPlugin {});
+    let plugin = OauthPlugin::new();
+    let mut plugin_registry = PluginRegistry::new();
+    plugin_registry.register_plugin(Rc::from(plugin));
+
+    let registry = Arc::new(plugin_registry);
+
     println!("Listening on http{}://{} with 1 thread...", match acceptor {
         Some(_) => "s",
         None => ""
     }, sock.local_addr()?);
     if let Some(acceptor) = acceptor {
         let server = sock.incoming().for_each(|(sock, remote_addr)| {
-            let p = plugin.clone();
+            let p = registry.clone();
             let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone(), plugin: p };
             acceptor.accept_async(sock).join(Ok(remote_addr)).and_then(|(sock, remote_addr)| {
                 http.bind_connection(&handle, sock, remote_addr, service);
@@ -148,7 +154,7 @@ fn run() -> errors::Result<()> {
         core.run(server)?;
     } else {
         let server = sock.incoming().for_each(|(sock, remote_addr)| {
-            let p = Arc::clone(&plugin);
+            let p = registry.clone();
             let service = proxy::Proxy { routes: routes.clone(), client: client.clone(), tls_client: tls_client.clone(), plugin: p };
             println!("really??");
             futures::future::ok(remote_addr).and_then(|remote_addr| {
@@ -176,3 +182,10 @@ fn main() {
         ::std::process::exit(1);
     }
 }
+
+//fn main() {
+//    let mut registry = PluginRegistry::new();
+//    let plugin = Rc::from(OauthPlugin::new());
+//    registry.register_plugin(plugin);
+//    println!("{}", registry.plugin_name());
+//}
