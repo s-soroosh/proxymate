@@ -3,6 +3,7 @@ use hyper::Request;
 use hyper::Response;
 use std::collections::HashMap;
 use hyper::header::Authorization;
+use hyper::{Client, StatusCode, Body};
 use hyper;
 use std::str::FromStr;
 
@@ -49,11 +50,11 @@ impl Plugin for OauthPlugin {
     fn plugin_name(&self) -> String {
         return String::from("Oauth Plugin");
     }
-    fn on_request(&self, req: &mut Request) -> Result<(), ()> {
-        req.headers().get::<Authorization<String>>().map(|value| {
+    fn on_request(&self, req: Request) -> Result<Request, Response> {
+        req.headers().clone().get::<Authorization<String>>().map(|value| {
             println!("you made it {}", value);
-            Ok(())
-        }).unwrap_or(Err(()))
+            Ok(req)
+        }).unwrap_or(Err(Response::new().with_status(StatusCode::Unauthorized)))
     }
 }
 

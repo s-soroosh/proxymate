@@ -32,7 +32,7 @@ pub struct Proxy {
     pub plugin: Arc<Plugin>
 }
 
-impl Service for Proxy{
+impl Service for Proxy {
     type Request = Request;
     type Response = Response;
     type Error = hyper::Error;
@@ -70,15 +70,16 @@ impl Service for Proxy{
                     *proxied_request.headers_mut() = req.headers().clone();
 
                     //call plugins here
-                    let o = self.plugin.on_request(&mut proxied_request);
+                    let o = self.plugin.on_request(proxied_request);
                     if o.is_err() {
-                        return futures::future::ok(Response::new().with_status(StatusCode::BadRequest)).boxed();
+                        return futures::future::ok(o.err().unwrap()).boxed();
                     }
 
+
                     let req = if secure {
-                        self.tls_client.request(proxied_request)
+                        self.tls_client.request(o.ok().unwrap())
                     } else {
-                        self.client.request(proxied_request)
+                        self.client.request(o.ok().unwrap())
                     };
                     Box::new(req.then(|res| {
                         println!("got response back!");
