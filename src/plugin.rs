@@ -9,7 +9,7 @@ pub trait Plugin {
     fn on_request(&self, req: Request) -> Result<Request, Response> {
         return Ok(req);
     }
-    fn on_response(&self, res: Response) -> Result<(), ()> {
+    fn on_response(&self, _res: Response) -> Result<(), ()> {
         return Ok(());
     }
 }
@@ -46,7 +46,7 @@ impl Plugin for PluginRegistry {
         return Ok(reqq);
     }
 
-    fn on_response(&self, res: Response) -> Result<(), ()> {
+    fn on_response(&self, _res: Response) -> Result<(), ()> {
         unimplemented!()
     }
 }

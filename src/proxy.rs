@@ -1,5 +1,5 @@
 use futures;
-use futures::{Future, BoxFuture};
+use futures::Future;
 use futures::future::FutureResult;
 
 use hyper;
@@ -47,7 +47,7 @@ impl Service for Proxy {
 
         let fut = {
             if !matches.matched_any() {
-                futures::future::ok(Response::new().with_status(StatusCode::NotFound)).boxed()
+                Box::from(futures::future::ok(Response::new().with_status(StatusCode::NotFound)))
             } else {
                 // Find the most specific match (unwrap called here because of the above check)
                 let index = matches.iter().next().unwrap();
@@ -59,8 +59,8 @@ impl Service for Proxy {
                         Some(m) => m.as_str(),
                         None => {
                             error!("no site_url present");
-                            return futures::future::ok(
-                                Response::new().with_status(StatusCode::InternalServerError)).boxed();
+                            return Box::from(futures::future::ok(
+                                Response::new().with_status(StatusCode::InternalServerError)));
                         }
                     };
                     let url = hyper::Uri::from_str(format!("{}{}", other_site, site_url).as_str()).expect("generated uri is not valid!!!");
@@ -71,16 +71,17 @@ impl Service for Proxy {
 
                     //call plugins here
                     let o = self.plugin.on_request(proxied_request);
+
                     if o.is_err() {
-                        return futures::future::ok(o.err().unwrap()).boxed();
+                        return Box::from(futures::future::ok(o.err().unwrap()));
                     }
+                    let final_request = o.unwrap();
 
-
-                    let req = if secure {
-                        self.tls_client.request(o.ok().unwrap())
-                    } else {
-                        self.client.request(o.ok().unwrap())
+                    let req = match secure {
+                        true => self.tls_client.request(final_request),
+                        false => self.client.request(final_request)
                     };
+
                     Box::new(req.then(|res| {
                         println!("got response back!");
                         if let Ok(res) = res {
@@ -96,7 +97,7 @@ impl Service for Proxy {
                         }
                     })) as Self::Future
                 } else {
-                    futures::future::ok(Response::new().with_status(StatusCode::BadGateway)).boxed()
+                    Box::from(futures::future::ok(Response::new().with_status(StatusCode::BadGateway)))
                 }
             }
         };

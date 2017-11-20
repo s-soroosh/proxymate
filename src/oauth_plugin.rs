@@ -7,18 +7,6 @@ use hyper::{Client, StatusCode, Body};
 use hyper;
 use std::str::FromStr;
 
-//#[derive(Deserialize, Debug, Clone)]
-//pub struct Config {
-//    pub general: GeneralConfig,
-//    pub paths: HashMap<String, String>,
-//}
-//
-//#[derive(Deserialize, Debug, Clone)]
-//pub struct GeneralConfig {
-//    pub listen_addr: String,
-//    pub tls_key: Option<String>,
-//    pub tls_password: Option<String>,
-//}
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct OauthPluginConfig {
@@ -52,7 +40,6 @@ impl Plugin for OauthPlugin {
     }
     fn on_request(&self, req: Request) -> Result<Request, Response> {
         req.headers().clone().get::<Authorization<String>>().map(|value| {
-            println!("you made it {}", value);
             Ok(req)
         }).unwrap_or(Err(Response::new().with_status(StatusCode::Unauthorized)))
     }
