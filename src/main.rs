@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate hyper;
 extern crate futures;
 #[macro_use]
@@ -24,7 +26,8 @@ mod tlsclient;
 mod plugin;
 mod oauth_plugin;
 
-use plugin::{Plugin, PluginRegistry};
+//use plugin::{Plugin, PluginRegistry};
+use plugin::{PluginRegistry};
 use oauth_plugin::OauthPlugin;
 
 use std::io;
@@ -38,7 +41,7 @@ use hyper::server::Http;
 use futures::{Future, Stream};
 
 use tokio_core::reactor::Core;
-use tokio_core::io::Io;
+//use tokio_core::io::Io;
 use tokio_core::net::TcpListener;
 
 use tokio_tls::TlsAcceptorExt;

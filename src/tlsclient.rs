@@ -1,6 +1,6 @@
 use std::io;
 use std::rc::Rc;
-use futures::{Future, Poll};
+use futures::{Future};
 use hyper::Uri;
 use hyper::client::{Connect, HttpConnector};
 use native_tls::TlsConnector;
