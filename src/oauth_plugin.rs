@@ -46,3 +46,16 @@ impl Plugin for OauthPlugin {
     }
 }
 
+#[test]
+fn oauth_plugin_respond_with_unauthorized_when_authorization_header_is_missing(){
+    use std::str::FromStr;
+    use hyper::*;
+
+    let response = OauthPlugin::new().on_request(
+        Request::new(Method::Get, Uri::from_str("example.com").unwrap())
+    );
+    assert_eq!(
+    response.unwrap_err().status(),
+    StatusCode::Unauthorized
+    );
+}
