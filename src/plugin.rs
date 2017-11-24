@@ -1,8 +1,8 @@
-use hyper;
+//use hyper;
 use hyper::Request;
 use hyper::Response;
 use std::rc::Rc;
-use oauth_plugin::OauthPlugin;
+//use oauth_plugin::OauthPlugin;
 
 pub trait Plugin {
     fn plugin_name(&self) -> String;
