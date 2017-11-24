@@ -50,6 +50,7 @@ use native_tls::{Pkcs12, TlsAcceptor, TlsConnector};
 use std::sync::Arc;
 use std::rc::Rc;
 
+
 static CONFIG_FILE_NAME: &'static str = "proxymate.toml";
 
 macro_rules! eprint {

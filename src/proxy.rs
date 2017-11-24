@@ -41,10 +41,7 @@ impl Service for Proxy {
 
     fn call(&self, req: Request) -> Self::Future {
         let uri = req.uri();
-        //        println!("uri is {}", uri);
         let matches = self.routes.regexes.matches(uri.path());
-        //        println!("routes are {:?}", self.routes.regexes);
-
         let fut = {
             if !matches.matched_any() {
                 Box::from(futures::future::ok(Response::new().with_status(StatusCode::NotFound)))
@@ -63,6 +60,7 @@ impl Service for Proxy {
                                 Response::new().with_status(StatusCode::InternalServerError)));
                         }
                     };
+
                     let url = hyper::Uri::from_str(format!("{}{}", other_site, site_url).as_str()).expect("generated uri is not valid!!!");
                     println!("forward request to {}", url);
                     let secure = url.scheme().unwrap_or("") == "https";
