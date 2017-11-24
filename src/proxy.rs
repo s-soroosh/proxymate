@@ -6,17 +6,11 @@ use hyper;
 use hyper::{Client, StatusCode, Body};
 use hyper::client::HttpConnector;
 use hyper::server::{Service, Request, Response};
-//use hyper::Uri;
 use std::str::FromStr;
-
-//use chrono::prelude::*;
-
 use regex;
 
 use tlsclient::HttpsConnector;
-//use errors;
 use plugin::Plugin;
-//use oauth_plugin::OauthPlugin;
 use std::sync::Arc;
 
 #[derive(Clone)]

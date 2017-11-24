@@ -18,6 +18,10 @@ extern crate native_tls;
 extern crate chrono;
 extern crate regex;
 
+mod zalando {
+    mod tokeninfo_client;
+}
+
 
 mod config;
 mod errors;
@@ -27,7 +31,7 @@ mod plugin;
 mod oauth_plugin;
 
 //use plugin::{Plugin, PluginRegistry};
-use plugin::{PluginRegistry};
+use plugin::PluginRegistry;
 use oauth_plugin::OauthPlugin;
 
 use std::io;
