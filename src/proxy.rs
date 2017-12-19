@@ -8,7 +8,6 @@ use hyper::client::HttpConnector;
 use hyper::server::{Service, Request, Response};
 use std::str::FromStr;
 use regex;
-
 use tlsclient::HttpsConnector;
 use plugin::Plugin;
 use std::sync::Arc;
@@ -36,6 +35,7 @@ impl Service for Proxy {
     fn call(&self, req: Request) -> Self::Future {
         let uri = req.uri();
         let matches = self.routes.regexes.matches(uri.path());
+
         let fut = {
             if !matches.matched_any() {
                 Box::from(futures::future::ok(Response::new().with_status(StatusCode::NotFound)))

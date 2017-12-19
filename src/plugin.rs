@@ -1,8 +1,6 @@
-//use hyper;
 use hyper::Request;
 use hyper::Response;
 use std::rc::Rc;
-//use oauth_plugin::OauthPlugin;
 
 pub trait Plugin {
     fn plugin_name(&self) -> String;
@@ -31,7 +29,10 @@ impl PluginRegistry {
 
 impl Plugin for PluginRegistry {
     fn plugin_name(&self) -> String {
-        return self.plugins.iter().map(|p| p.plugin_name()).fold(String::new(), |a, p| a + p.as_str()).to_string();
+        return self.plugins.iter()
+            .map(|p| p.plugin_name())
+            .fold(String::new(), |a, p| a + p.as_str())
+            .to_string();
     }
 
     fn on_request(&self, req: Request) -> Result<Request, Response> {
